@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoxFlow — AI Voice Notes to CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Colors */
+            --bg-main: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --text-main: #0F172A;
+            --text-muted: #475569;
+            --text-light: #94A3B8;
+            --primary: #4F46E5;
+            --primary-gradient: linear-gradient(135deg, #4F46E5, #7C3AED);
+            --border-color: #E2E8F0;
+            
+            /* Typography */
+            --font-family: 'Inter', sans-serif;
+            
+            /* Spacing & Radii */
+            --radius-sm: 12px;
+            --radius-lg: 24px;
+            
+            /* Shadows */
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            --shadow-glow: 0 0 40px rgba(124, 58, 237, 0.2);
+            
+            /* Transitions */
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Reset & Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section {
+            padding: 60px 0;
+        }
+
+        @media (min-width: 768px) {
+            section {
+                padding: 100px 0;
+            }
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 64px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.125rem;
+        }
+
+        .gradient-text {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: var(--primary); /* Fallback */
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 1rem;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: #FFFFFF;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md), var(--shadow-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: #F1F5F9;
+            transform: translateY(-2px);
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            font-size: 1.75rem;
+        }
+
+        .nav-links {
+            display: none;
+            gap: 32px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+            transition: var(--transition);
+        }
+
+        @media (min-width: 768px) {
+            .nav-links { display: flex; }
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            padding-top: 160px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
+            filter: blur(60px);
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 24px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 64px;
+        }
+
+        @media (min-width: 640px) {
+            .hero-buttons {
+                flex-direction: row;
+            }
+            .hero h1 { font-size: 3.5rem; }
+            .hero p { font-size: 1.25rem; }
+        }
+
+        @media (min-width: 1024px) {
+            .hero h1 { font-size: 4.5rem; }
+        }
+
+        /* CSS Mockup */
+        .mockup-wrapper {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+
+        .mockup {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            aspect-ratio: 16/10;
+        }
+
+        .mockup-header {
+            height: 48px;
+            background: #F1F5F9;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 8px;
+        }
+
+        .mockup-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .mockup-dot.red { background: #EF4444; }
+        .mockup-dot.yellow { background: #F59E0B; }
+        .mockup-dot.green { background: #10B981; }
+
+        .mockup-body {
+            display: flex;
+            flex: 1;
+        }
+
+        .mockup-sidebar {
+            display: none;
+            width: 240px;
+            background: #F8FAFC;
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .mockup-sidebar { display: flex; }
+        }
+
+        .mockup-nav-item {
+            height: 24px;
+            border-radius: 6px;
+            background: #E2E8F0;
+            width: 100%;
+        }
+
+        .mockup-nav-item.active {
+            background: var(--primary-gradient);
+            opacity: 0.8;
+        }
+
+        .mockup-content {
+            flex: 1;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            background: #FFFFFF;
+        }
+
+        .mockup-title {
+            width: 40%;
+            height: 32px;
+            background: #E2E8F0;
+            border-radius: 8px;
+        }
+
+        .mockup-text-line {
+            width: 100%;
+            height: 16px;
+            background: #F1F5F9;
+            border-radius: 4px;
+        }
+
+        .mockup-text-line.short {
+            width: 60%;
+        }
+
+        .mockup-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: auto;
+        }
+
+        @media (min-width: 640px) {
+            .mockup-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .mockup-card {
+            height: 120px;
+            background: #F8FAFC;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mockup-card-header {
+            width: 50%;
+            height: 16px;
+            background: #E2E8F0;
+            border-radius: 4px;
+        }
+        
+        .mockup-card-body {
+            width: 80%;
+            height: 12px;
+            background: #F1F5F9;
+            border-radius: 4px;
+        }
+
+        /* Social Proof */
+        .social-proof {
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .social-proof p {
+            color: var(--text-light);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 24px;
+        }
+
+        .logos-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
+        .fake-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-main);
+        }
+
+        @media (min-width: 768px) {
+            .logos-wrapper { gap: 80px; }
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+        }
+
+        @media (min-width: 768px) {
+            .features-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            padding: 40px 32px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-md);
+            border-color: #CBD5E1;
+        }
+
+        .icon-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background: #EEF2FF;
+            border-radius: 16px;
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+        }
+
+        /* How it Works */
+        .steps-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .steps-wrapper {
+                flex-direction: row;
+                gap: 24px;
+            }
+            .steps-wrapper::before {
+                content: '';
+                position: absolute;
+                top: 24px;
+                left: 50px;
+                right: 50px;
+                height: 2px;
+                background: var(--border-color);
+                z-index: 0;
+            }
+        }
+
+        .step-card {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+            text-align: left;
+            background: var(--bg-main);
+        }
+
+        @media (min-width: 768px) {
+            .step-card { text-align: center; }
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            box-shadow: 0 0 0 8px var(--bg-main);
+        }
+
+        @media (min-width: 768px) {
+            .step-number { margin: 0 auto 24px; }
+        }
+
+        .step-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .step-card p {
+            color: var(--text-muted);
+        }
+
+        /* Pricing Section */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+            max-width: 900px;
+            margin: 0 auto;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .pricing-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 48px 32px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pricing-card.pro {
+            position: relative;
+            border: 2px solid transparent;
+            background: linear-gradient(#fff, #fff) padding-box, var(--primary-gradient) border-box;
+            box-shadow: var(--shadow-lg);
+            transform: scale(1);
+        }
+
+        @media (min-width: 768px) {
+            .pricing-card.pro {
+                transform: scale(1.05);
+                padding: 56px 40px;
+            }
+        }
+
+        .badge-popular {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-gradient);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .plan-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            color: var(--text-main);
+        }
+
+        .plan-price span {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 32px;
+            flex: 1;
+        }
+
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+        }
+
+        .plan-features li::before {
+            content: '✅';
+            font-size: 1rem;
+        }
+
+        .pricing-card .btn {
+            width: 100%;
+        }
+
+        /* Footer */
+        footer {
+            background: #FFFFFF;
+            border-top: 1px solid var(--border-color);
+            padding: 48px 0;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .footer-content {
+                flex-direction: row;
+                justify-content: space-between;
+                text-align: left;
+            }
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-main);
+        }
+
+        .copyright {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container navbar">
+            <a href="#" class="logo">
+                <span class="logo-icon">🎙️</span> VoxFlow
+            </a>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How it Works</a>
+                <a href="#pricing">Pricing</a>
+            </nav>
+            <a href="#pricing" class="btn btn-primary">Try for free</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <h1>Turn Voice Notes into <br><span class="gradient-text">Actionable CRM Data</span></h1>
+                <p>VoxFlow uses advanced AI to transcribe your meetings, extract action items, and sync them directly to your favorite CRM in seconds. No more manual data entry.</p>
+                <div class="hero-buttons">
+                    <a href="#pricing" class="btn btn-primary">Start 14-day Free Trial</a>
+                    <a href="#how-it-works" class="btn btn-secondary">See how it works</a>
+                </div>
+
+                <!-- CSS Mockup -->
+                <div class="mockup-wrapper">
+                    <div class="mockup">
+                        <div class="mockup-header">
+                            <div class="mockup-dot red"></div>
+                            <div class="mockup-dot yellow"></div>
+                            <div class="mockup-dot green"></div>
+                        </div>
+                        <div class="mockup-body">
+                            <div class="mockup-sidebar">
+                                <div class="mockup-nav-item active"></div>
+                                <div class="mockup-nav-item"></div>
+                                <div class="mockup-nav-item"></div>
+                                <div class="mockup-nav-item" style="width: 70%;"></div>
+                            </div>
+                            <div class="mockup-content">
+                                <div class="mockup-title"></div>
+                                <div class="mockup-text-line"></div>
+                                <div class="mockup-text-line"></div>
+                                <div class="mockup-text-line short"></div>
+                                <div class="mockup-grid">
+                                    <div class="mockup-card">
+                                        <div class="mockup-card-header"></div>
+                                        <div class="mockup-card-body"></div>
+                                        <div class="mockup-card-body" style="width: 60%;"></div>
+                                    </div>
+                                    <div class="mockup-card">
+                                        <div class="mockup-card-header"></div>
+                                        <div class="mockup-card-body"></div>
+                                        <div class="mockup-card-body" style="width: 40%;"></div>
+                                    </div>
+                                    <div class="mockup-card">
+                                        <div class="mockup-card-header"></div>
+                                        <div class="mockup-card-body"></div>
+                                        <div class="mockup-card-body" style="width: 90%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Social Proof -->
+        <section class="social-proof">
+            <div class="container">
+                <p>Trusted by 10,000+ teams worldwide</p>
+                <div class="logos-wrapper">
+                    <div class="fake-logo">Acmecorp</div>
+                    <div class="fake-logo">Globex</div>
+                    <div class="fake-logo">Soylent</div>
+                    <div class="fake-logo">Initech</div>
+                    <div class="fake-logo">Umbrella</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Everything you need to close faster</h2>
+                    <p>Automate your post-meeting workflow and focus on what matters most — building relationships and closing deals.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="icon-box">🧠</div>
+                        <h3>Smart Summaries</h3>
+                        <p>Our AI analyzes your voice notes and generates structured, easy-to-read summaries highlighting the key points of your conversation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-box">⚡</div>
+                        <h3>Auto Task Extraction</h3>
+                        <p>Instantly identify action items, assignees, and deadlines. VoxFlow automatically creates tasks so nothing falls through the cracks.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-box">🔄</div>
+                        <h3>Seamless CRM Sync</h3>
+                        <p>Push summaries and tasks directly to Salesforce, HubSpot, or Pipedrive with a single tap. Your CRM is always up to date.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How it Works Section -->
+        <section id="how-it-works">
+            <div class="container">
+                <div class="section-header">
+                    <h2>How VoxFlow works</h2>
+                    <p>Three simple steps to transform your chaotic voice memos into organized business data.</p>
+                </div>
+                <div class="steps-wrapper">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3>Record or Upload</h3>
+                        <p>Speak your mind after a call or upload a meeting recording directly into the VoxFlow app.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3>AI Magic</h3>
+                        <p>VoxFlow automatically transcribes, cleans up the text, and extracts actionable insights.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3>Sync to CRM</h3>
+                        <p>Review the generated summary and sync it to your CRM and task manager instantly.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="pricing">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Simple, transparent pricing</h2>
+                    <p>Start for free, upgrade when you need more power.</p>
+                </div>
+                <div class="pricing-grid">
+                    <!-- Starter Plan -->
+                    <div class="pricing-card">
+                        <div class="plan-name">Starter</div>
+                        <div class="plan-price">$19<span>/mo</span></div>
+                        <ul class="plan-features">
+                            <li>Up to 20 hours of audio/month</li>
+                            <li>Basic AI Summaries</li>
+                            <li>Export to Notion & Slack</li>
+                            <li>Email support</li>
+                        </ul>
+                        <a href="#" class="btn btn-secondary">Get Started</a>
+                    </div>
+                    
+                    <!-- Pro Plan -->
+                    <div class="pricing-card pro">
+                        <div class="badge-popular">Most Popular</div>
+                        <div class="plan-name">Pro</div>
+                        <div class="plan-price">$49<span>/mo</span></div>
+                        <ul class="plan-features">
+                            <li>Unlimited audio transcription</li>
+                            <li>Advanced Action Item Extraction</li>
+                            <li>Direct CRM Integrations (Salesforce, HubSpot)</li>
+                            <li>Custom vocabulary & templates</li>
+                            <li>Priority 24/7 support</li>
+                        </ul>
+                        <a href="#" class="btn btn-primary">Start Free Trial</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="logo">
+                <span class="logo-icon">🎙️</span> VoxFlow
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Us</a>
+            </div>
+            <div class="copyright">
+                &copy; 2024 VoxFlow Inc. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
